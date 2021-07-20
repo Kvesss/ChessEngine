@@ -8,7 +8,7 @@ namespace ChessEngine
     {
 
 
-        public static readonly int[,] pawnPosition = new int[8, 8]
+        private static readonly int[,] pawnPosition = new int[8, 8]
         {
             { 0,  0,  0,  0,  0,  0,  0,  0},
             {50, 50, 50, 50, 50, 50, 50, 50},
@@ -19,7 +19,7 @@ namespace ChessEngine
             { 5, 10, 10,-20,-20, 10, 10,  5},
             { 0,  0,  0,  0,  0,  0,  0,  0}};
 
-        public static readonly int[,] knightPosition = new int[8, 8]
+        private static readonly int[,] knightPosition = new int[8, 8]
         {
             {-50,-40,-30,-30,-30,-30,-40,-50},
             {-40,-20,  0,  0,  0,  0,-20,-40},
@@ -29,7 +29,7 @@ namespace ChessEngine
             {-30,  5, 10, 15, 15, 10,  5,-30},
             {-40,-20,  0,  5,  5,  0,-20,-40},
             {-50,-40,-30,-30,-30,-30,-40,-50}};
-        public static readonly int[,] bishopPosition = new int[8, 8]
+        private static readonly int[,] bishopPosition = new int[8, 8]
         {
             {-20,-10,-10,-10,-10,-10,-10,-20},
             {-10,  0,  0,  0,  0,  0,  0,-10},
@@ -39,7 +39,7 @@ namespace ChessEngine
             {-10, 10, 10, 10, 10, 10, 10,-10},
             {-10,  5,  0,  0,  0,  0,  5,-10},
             {-20,-10,-10,-10,-10,-10,-10,-20}};
-        public static readonly int[,] rookPosition = new int[8, 8]
+        private static readonly int[,] rookPosition = new int[8, 8]
         {
             { 0,  0,  0,  0,  0,  0,  0,  0},
             {50, 50, 50, 50, 50, 50, 50, 50},
@@ -49,7 +49,7 @@ namespace ChessEngine
             { 5, -5,-10,  0,  0,-10, -5,  5},
             { 5, 10, 10,-20,-20, 10, 10,  5},
             { 0,  0,  0, 10, 10,  0,  0,  0}};
-        public static readonly int[,] queenPosition = new int[8, 8]
+        private static readonly int[,] queenPosition = new int[8, 8]
         {
             {-20,-10,-10, -5, -5,-10,-10,-20},
             {-10,  0,  0,  0,  0,  0,  0,-10},
@@ -61,7 +61,7 @@ namespace ChessEngine
             {-20,-10,-10, -5, -5,-10,-10,-20}};
 
 
-        public static readonly int[,] kingPosition = new int[8, 8]
+        private static readonly int[,] kingPosition = new int[8, 8]
         {
             {-30,-40,-40,-50,-50,-40,-40,-30},
             {-30,-40,-40,-50,-50,-40,-40,-30},
@@ -77,23 +77,23 @@ namespace ChessEngine
         {
             int evaluationValue = 0;
             int piecesValue = EvaluatePieces();
-            evaluationValue += EvaluateAttack();
             evaluationValue += piecesValue;
-            evaluationValue += EvaluateMobility();
+            evaluationValue += EvaluateMobility(count);
             evaluationValue += EvaluatePosition(piecesValue);
-            Engine.FlipBoard();
+            Engine.SwitchPlayer();
             piecesValue = EvaluatePieces();
-            evaluationValue -= EvaluateAttack();
             evaluationValue -= piecesValue;
-            evaluationValue -= EvaluateMobility();
+            evaluationValue -= EvaluateMobility(count);
             evaluationValue -= EvaluatePosition(piecesValue);
-            Engine.FlipBoard();
-            return -(evaluationValue + depth * 50);
+            Engine.SwitchPlayer();
+            return (evaluationValue + depth * 50)*-1;
+
         }
 
         private static int EvaluatePosition(int piecesValue)
         {
             int value = 0;
+            int[] pawnsInLine = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
             for (int i = 0; i < 8; i++)
             {
                 for (int j = 0; j < 8; j++)
@@ -102,6 +102,9 @@ namespace ChessEngine
                     {
                         case "P":
                             value += pawnPosition[i, j];
+                            pawnsInLine[j]++;
+                            if(pawnsInLine[j] > 1)
+                                value -= 50;
                             break;
                         case "N":
                             value += knightPosition[i, j];
@@ -123,20 +126,18 @@ namespace ChessEngine
             }
             return value;
         }
+        
 
-        private static int EvaluateMobility()
+        private static int EvaluateMobility(int count)
         {
-            return 0;
+            return 5*count;
         }
 
-        private static int EvaluateAttack()
-        {
-            return 0;
-        }
 
         public static int EvaluatePieces()
         {
             int value = 0;
+            bool bishopPair = false;
             for(int i = 0; i<8; i++)
             {
                 for(int j = 0; j <8; j++)
@@ -150,7 +151,8 @@ namespace ChessEngine
                             value += 300;
                             break;
                         case "B":
-                            value += 300;
+                            value += bishopPair ? 400 : 300;
+                            bishopPair = !bishopPair;
                             break;
                         case "R":
                             value += 500;

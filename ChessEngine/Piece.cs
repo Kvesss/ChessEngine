@@ -6,6 +6,6 @@ namespace ChessEngine
 {
     interface Piece
     {
-        public List<string> getPossibleMoves();
+        public List<string> getPossibleMoves(Piece[,] board);
     }
 }

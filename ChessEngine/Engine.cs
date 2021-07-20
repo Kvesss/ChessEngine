@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -10,6 +11,44 @@ namespace ChessEngine
     {
         public static int whiteKing, blackKing;
         public const int DEPTH = 5;
+
+
+        //r*b***k*******p*P*n*pr*pq*p******b*P******N**N**PP*QBPPPR***K**R
+        //**nq*nk******p*p****p*pQpb*pP*NP*p*P**P**P****N*P****PB*******K*
+        //***********r**p*pp*Bp*p**kP******n**K*********R**P***P**********
+        //************kb*p**p***pP*pP*P*P**P***K***B**********************
+        //b*R**nk******ppp*p***n*******N***b**p****P**BP**q***BQPP******K*
+        //***rr*k*pp***pbp**bp*np*q***p*B***B*P*****N****PPPPQ*PP****RR*K*
+        //r*b*qrk**ppn*pb*p**p*npp***Pp*****P*P**B**N*****PP*NBPPPR**Q*RK*
+        //**R*r********k**pBP*n**p******p**************P*P**P***P********K
+        //**r**rk**p*R*pp*p***p**p************B******QB*P*q*P***KP********
+        //r*bq*rk*p****ppp*pnp*n****p*******PPpP***NP*P***P***B*PPR*BQ*RK*
+        public static void SetBoard(string input)
+        {
+            for (int i=0; i < 64; i++)
+            {
+                if (input[i] == '*')
+                {
+                    board[i / 8, i % 8] = " ";
+                }
+                else
+                {
+                    board[i / 8, i % 8] = input[i].ToString();
+                }
+            }
+        }
+
+        public static string GetMove(string move)
+        {
+            string returnMove = "";
+            returnMove += (char)(65 + int.Parse(move[1].ToString()));
+            returnMove += 8 - int.Parse(move[0].ToString());
+            returnMove += " , ";
+            returnMove += (char)(65 + int.Parse(move[3].ToString()));
+            returnMove += 8 - int.Parse(move[2].ToString());
+
+            return returnMove;
+        }
 
 
         public static string[,] board = new string[8, 8] 
@@ -93,19 +132,19 @@ namespace ChessEngine
         public static string Minimax(int depth, string move, int alpha, int beta, int maximizingPlayer)
         {
             List<string> availableMoves = GetPossibleMoves();
-            //TODO sort
             if (depth == 0 || availableMoves.Count.Equals(0))
             {
                 return move + (Evaluator.Evaluate(availableMoves.Count, depth) * (maximizingPlayer * 2 - 1)).ToString();
             }
+            OrderMoves(availableMoves);
             maximizingPlayer = 1 - maximizingPlayer;
             for (int i = 0; i < availableMoves.Count; i++)
             {
                 Move(availableMoves[i]);
-                FlipBoard();
+                SwitchPlayer();
                 string oppositeMove = Minimax(depth - 1, availableMoves[i], alpha, beta, maximizingPlayer);
                 int moveValue = (!oppositeMove.Contains('Q')) ? int.Parse(oppositeMove.Substring(5)) : int.Parse(oppositeMove.Substring(6));
-                FlipBoard();
+                SwitchPlayer();
                 Undo(availableMoves[i]);
 
                 if (maximizingPlayer == 0)
@@ -115,7 +154,7 @@ namespace ChessEngine
                         beta = moveValue;
                         if (depth == DEPTH)
                         {
-                            move = oppositeMove.Substring(0, 5);
+                            move = (!oppositeMove.Contains('Q')) ? oppositeMove.Substring(0, 5) : oppositeMove.Substring(0,6);
                         }
                     }
                 }
@@ -124,7 +163,7 @@ namespace ChessEngine
                     alpha = moveValue;
                     if (depth == DEPTH)
                     {
-                        move = oppositeMove.Substring(0, 5);
+                        move = (!oppositeMove.Contains('Q')) ? oppositeMove.Substring(0, 5) : oppositeMove.Substring(0, 6);
                     }
                 }
                 if (alpha >= beta)
@@ -136,20 +175,43 @@ namespace ChessEngine
 
         }
 
-        public static void SortMoves(List<string> moves)
+        public static void OrderMoves(List<string> moves)
         {
-            List<int> values = new List<int>(moves.Count);
-            for(int i = 0; i<values.Count; i++)
+            List<int> values = new List<int>();
+            List<Move> sortedMoves = new List<Move>();
+            for (int i = 0; i<moves.Count; i++)
             {
                 Move(moves[i].Substring(0, 5));
-                values[i] = Evaluator.Evaluate(-1, 0);
+                values.Add(Evaluator.Evaluate(-1, 0));
+                sortedMoves.Add(new Move(moves[i], values[i]));
                 Undo(moves[i].Substring(0, 5));
             }
+            for (int i = 0; i< sortedMoves.Count; i++)
+            {
+                for (int j = 0; j < sortedMoves.Count - 1; j++)
+                {
+                    if(sortedMoves[j].GetValue() > sortedMoves[j + 1].GetValue())
+                    {
+                        Move temp = sortedMoves[j + 1];
+                        sortedMoves[j + 1] = sortedMoves[j];
+                        sortedMoves[j] = temp;
+                    }
+                }
+            }
+            moves.Clear();
+            for(int i = 0; i<sortedMoves.Count; i++)
+            {
+                moves.Add(sortedMoves[i].GetMove());
+            }
+
         }
 
-        public static void FlipBoard()
+        public static void SwitchPlayer()
         {
-            for(int i =0;i <32; i++)
+            int kingTemp = whiteKing;
+            whiteKing = 63 - blackKing;
+            blackKing = 63 - kingTemp;
+            for (int i =0;i <32; i++)
             {
                 string temp;
                 int r = i / 8, c = i % 8;
@@ -171,10 +233,6 @@ namespace ChessEngine
                 }
                 board[7 - r,7 - c] = temp;
             }
-            int kingTemp = whiteKing;
-            whiteKing = 63 - blackKing;
-            blackKing = 63 - kingTemp;
-
         }
 
         public static List<string> GetPossibleKingMoves(int index)
@@ -355,7 +413,7 @@ namespace ChessEngine
                     }
                     else
                     {
-                        if (char.IsLower((board[row + temp * i, col])[0]) && IsInsideBounds(row + temp * i, col))
+                        if (char.IsLower(board[row + temp * i, col][0]) && IsInsideBounds(row + temp * i, col))
                         {
                             string attackedPiece = board[row + temp * i, col];
                             board[row, col] = " ";
@@ -796,72 +854,91 @@ namespace ChessEngine
         }
 
 
-        static void Main(string[] args)
-        {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
+        //static void Main(string[] args)
+        //{
+        //    var stopwatch = new Stopwatch();
+        //    stopwatch.Start();
 
-            while (!"K".Equals(board[whiteKing / 8, whiteKing % 8]))
-            {
-                whiteKing++;
-            }
-            while (!"k".Equals(board[blackKing / 8, blackKing % 8]))
-            {
-                blackKing++;
-            }
+        //    while (!"K".Equals(board[whiteKing / 8, whiteKing % 8]))
+        //    {
+        //        whiteKing++;
+        //    }
+        //    while (!"k".Equals(board[blackKing / 8, blackKing % 8]))
+        //    {
+        //        blackKing++;
+        //    }
 
-            //List<string> testKing = GetPossibleMoves();
-            //for (int i = 0; i < testKing.Count; i++)
-            //{
-            //    Console.WriteLine(testKing[i]);
-            //}
-
-
-            //Console.WriteLine(Environment.NewLine);
-            //PrintBoard();
-            //Move("6545 ");
-            //Undo("6545 ");
-            //Console.WriteLine(Environment.NewLine);
-            //PrintBoard();
-
-            //testKing = GetPossibleMoves();
-            //for (int i = 0; i < testKing.Count; i++)
-            //{
-            //    Console.WriteLine(testKing[i]);
-            //}
-            Move(Minimax(DEPTH, "", -100000, 100000, 0));
-            PrintBoard();
+        //    //List<string> testKing = GetPossibleMoves();
+        //    //for (int i = 0; i < testKing.Count; i++)
+        //    //{
+        //    //    Console.WriteLine(testKing[i]);
+        //    //}
 
 
-            //int counter = 0;
-            //while (true)
-            //{
-            //    Thread.Sleep(1000);
-            //    FlipBoard();
-            //    if (counter % 2 == 0)
-            //    {
-            //        Move(Minimax(DEPTH, "", -100000, 100000, 0));
-            //        PrintBoard();
-            //    }
-            //    else
-            //    {
+        //    //Console.WriteLine(Environment.NewLine);
+        //    //PrintBoard();
+        //    //Move("6545 ");
+        //    //Undo("6545 ");
+        //    //Console.WriteLine(Environment.NewLine);
+        //    //PrintBoard();
 
-            //        Move(Minimax(DEPTH, "", -100000, 100000, 1));
-            //        FlipBoard();
-            //        PrintBoard();
-            //        FlipBoard();
-            //    }
-            //    Console.WriteLine(Environment.NewLine);
+        //    //List<string> testKing = GetPossibleMoves();
+        //    //for (int i = 0; i < testKing.Count; i++)
+        //    //{
+        //    //    Console.WriteLine(testKing[i]);
+        //    //}
+        //    //Console.WriteLine(Minimax(DEPTH, "", -100000, 100000, 0));
 
 
-            //}
+        //    //string input = Console.ReadLine();
+        //    //SetBoard(input);
+        //    //SwitchPlayer();
+        //    string move = Minimax(DEPTH, "", -100000, 100000, 0);
+        //    Console.WriteLine(GetMove(move));
+        //    Console.WriteLine(move);
+        //    Move(move);
+        //    PrintBoard();
 
 
-            stopwatch.Stop();
+        //    //int counter = 0;
+        //    //while (true)
+        //    //{
+        //    //    Thread.Sleep(1000);
+        //    //    SwitchPlayer();
+        //    //    if (counter % 2 == 0)
+        //    //    {
+        //    //        Move(Minimax(DEPTH, "", -100000, 100000, 0));
+        //    //        PrintBoard();
+        //    //    }
+        //    //    else
+        //    //    {
 
-            Console.WriteLine(stopwatch.Elapsed);
+        //    //        Move(Minimax(DEPTH, "", -100000, 100000, 1));
+        //    //        SwitchPlayer();
+        //    //        PrintBoard();
+        //    //        SwitchPlayer();
+        //    //    }
+        //    //    Console.WriteLine(Environment.NewLine);
 
-        }
+
+        //    //}
+
+
+        //    //OrderMoves(testKing);
+        //    //Console.WriteLine(Environment.NewLine);
+
+
+        //    //for (int i = 0; i < testKing.Count; i++)
+        //    //{
+        //    //    Console.WriteLine(testKing[i]);
+        //    //}
+
+
+        //    stopwatch.Stop();
+
+        //    Console.WriteLine(stopwatch.Elapsed);
+
+        //}
 
     }
 }
