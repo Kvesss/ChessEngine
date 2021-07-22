@@ -72,6 +72,17 @@ namespace ChessEngine
             { 20, 20,  0,  0,  0,  0, 20, 20},
             { 20, 30, 10,  0,  0, 10, 30, 20}};
 
+        private static readonly int[,] kingEndPosition = new int[8, 8]
+        {
+            {-50,-40,-30,-20,-20,-30,-40,-50},
+            {-30,-20,-10,  0,  0,-10,-20,-30},
+            {-30,-10, 20, 30, 30, 20,-10,-30},
+            {-30,-10, 30, 40, 40, 30,-10,-30},
+            {-30,-10, 30, 40, 40, 30,-10,-30},
+            {-30,-10, 20, 30, 30, 20,-10,-30},
+            {-30,-30,  0,  0,  0,  0,-30,-30},
+            {-50,-30,-30,-30,-30,-30,-30,-50}};
+
 
         public static int Evaluate(int count, int depth)
         {
@@ -105,6 +116,26 @@ namespace ChessEngine
                             pawnsInLine[j]++;
                             if(pawnsInLine[j] > 1)
                                 value -= 50;
+                            //if (Engine.IsInsideBounds(i - 1, j - 1))
+                            //{
+                            //    if (Engine.board[i - 1, j - 1] == "P")
+                            //        value += 10;
+                            //}
+                            //if (Engine.IsInsideBounds(i - 1, j + 1))
+                            //{
+                            //    if (Engine.board[i - 1, j + 1] == "P")
+                            //        value += 10;
+                            //}
+                            //if (Engine.IsInsideBounds(i + 1, j - 1))
+                            //{
+                            //    if (Engine.board[i + 1, j - 1] == "P")
+                            //        value += 10;
+                            //}
+                            //if (Engine.IsInsideBounds(i + 1, j + 1))
+                            //{
+                            //    if (Engine.board[i + 1, j + 1] == "P")
+                            //        value += 10;
+                            //}
                             break;
                         case "N":
                             value += knightPosition[i, j];
@@ -119,7 +150,15 @@ namespace ChessEngine
                             value += queenPosition[i, j];
                             break;
                         case "K":
-                            value += kingPosition[i, j];
+                            if(piecesValue >= 12000)
+                            {
+                                value += kingPosition[i, j];
+                            }
+                            else
+                            {
+                                value += kingEndPosition[i, j];
+                            }
+                                
                             break;
                     }
                 }

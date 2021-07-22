@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Diagnostics;
 using System.Text;
-using System.Threading;
 
 namespace ChessEngine
 {
     class Engine
     {
-        public static int whiteKing, blackKing;
         public const int DEPTH = 5;
-
+        public static int numberOfMoves = 0;
 
         //r*b***k*******p*P*n*pr*pq*p******b*P******N**N**PP*QBPPPR***K**R
         //**nq*nk******p*p****p*pQpb*pP*NP*p*P**P**P****N*P****PB*******K*
@@ -134,9 +130,11 @@ namespace ChessEngine
             List<string> availableMoves = GetPossibleMoves();
             if (depth == 0 || availableMoves.Count.Equals(0))
             {
+                numberOfMoves++;
                 return move + (Evaluator.Evaluate(availableMoves.Count, depth) * (maximizingPlayer * 2 - 1)).ToString();
             }
-            OrderMoves(availableMoves);
+            if (depth > 1)
+                OrderMoves(availableMoves);
             maximizingPlayer = 1 - maximizingPlayer;
             for (int i = 0; i < availableMoves.Count; i++)
             {
@@ -154,7 +152,7 @@ namespace ChessEngine
                         beta = moveValue;
                         if (depth == DEPTH)
                         {
-                            move = (!oppositeMove.Contains('Q')) ? oppositeMove.Substring(0, 5) : oppositeMove.Substring(0,6);
+                            move = (!oppositeMove.Contains('Q')) ? oppositeMove.Substring(0, 5) : oppositeMove.Substring(0, 6);
                         }
                     }
                 }
@@ -175,10 +173,10 @@ namespace ChessEngine
 
         }
 
-        public static void OrderMoves(List<string> moves)
+        private static void OrderMoves(List<string> moves)
         {
-            List<int> values = new List<int>();
-            List<Move> sortedMoves = new List<Move>();
+            List<int> values = new List<int>(moves.Count);
+            List<Move> sortedMoves = new List<Move>(moves.Count);
             for (int i = 0; i<moves.Count; i++)
             {
                 Move(moves[i].Substring(0, 5));
@@ -208,34 +206,53 @@ namespace ChessEngine
 
         public static void SwitchPlayer()
         {
-            int kingTemp = whiteKing;
-            whiteKing = 63 - blackKing;
-            blackKing = 63 - kingTemp;
-            for (int i =0;i <32; i++)
+            //for (int i = 0; i < 32; i++)
+            //{
+            //    string temp;
+            //    int row = i / 8, col = i % 8;
+            //    if (char.IsUpper(board[row, col][0]))
+            //    {
+            //        temp = board[row, col].ToLower();
+            //    }
+            //    else
+            //    {
+            //        temp = board[row, col].ToUpper();
+            //    }
+            //    if (char.IsUpper(board[7 - row, 7 - col][0]))
+            //    {
+            //        board[row, col] = board[7 - row, 7 - col].ToLower();
+            //    }
+            //    else
+            //    {
+            //        board[row, col] = board[7 - row, 7 - col].ToUpper();
+            //    }
+            //    board[7 - row, 7 - col] = temp;
+            //}
+
+            for (int i = 0; i < 4; i++)
             {
-                string temp;
-                int r = i / 8, c = i % 8;
-                if (char.IsUpper(board[r,c][0]))
+                for (int j = 0; j < 8; j++)
                 {
-                    temp = board[r,c].ToLower();
+                    string temp = board[i, j];
+                    board[i, j] = board[8 - i - 1, 8 - j - 1];
+                    board[8 - i - 1, 8 - j - 1] = temp;
                 }
-                else
+
+            }
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
                 {
-                    temp = board[r,c].ToUpper();
+                    if (char.IsUpper(board[i, j][0]))
+                        board[i, j] = char.ToLower(board[i, j][0]).ToString();
+                    else if (char.IsLower(board[i, j][0]))
+                        board[i, j] = char.ToUpper(board[i, j][0]).ToString();
                 }
-                if (char.IsUpper(board[7 - r,7 - c][0]))
-                {
-                    board[r,c] = board[7 - r,7 - c].ToLower();
-                }
-                else
-                {
-                    board[r,c] = board[7 - r,7 - c].ToUpper();
-                }
-                board[7 - r,7 - c] = temp;
             }
         }
 
-        public static List<string> GetPossibleKingMoves(int index)
+
+        private static List<string> GetPossibleKingMoves(int index)
         {
 
             int row = index / 8, col = index % 8;
@@ -250,20 +267,14 @@ namespace ChessEngine
 
                             if (char.IsLower((board[i, j])[0]) || board[i, j].Equals(" "))
                             {
-                                int temp = whiteKing;
-                                whiteKing = j + i * 8;
                                 string attackedPiece = board[i, j];
                                 board[row, col] = " ";
                                 board[i, j] = "K";
-                                if (IsKingSafe())
-                                {
-                                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(i).Append(j).Append(attackedPiece);
-                                    possibleMoves.Add(builder.ToString());
-                                    
-                                }
+                                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(i).Append(j).Append(attackedPiece);
+                                possibleMoves.Add(builder.ToString());
+
                                 board[row, col] = "K";
                                 board[i, j] = attackedPiece;
-                                whiteKing = temp;
                             }
                         }
                     }
@@ -275,7 +286,7 @@ namespace ChessEngine
 
 
 
-        public static List<string> GetPossibleQueenMoves(int index)
+        private static List<string> GetPossibleQueenMoves(int index)
         {
             int temp = 1;
             int row = index / 8, col = index % 8;
@@ -292,12 +303,8 @@ namespace ChessEngine
                                 string attackedPiece = board[row + temp * i, col + temp * j];
                                 board[row, col] = " ";
                                 board[row + temp * i, col + temp * j] = "Q";
-                                if (IsKingSafe())
-                                {
-                                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col + temp * j).Append(attackedPiece);
-                                    possibleMoves.Add(builder.ToString());
-
-                                }
+                                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col + temp * j).Append(attackedPiece);
+                                possibleMoves.Add(builder.ToString());
                                 board[row, col] = "Q";
                                 board[row + temp * i, col + temp * j] = attackedPiece;
                                 temp++;
@@ -311,12 +318,8 @@ namespace ChessEngine
                                     string attackedPiece = board[row + temp * i, col + temp * j];
                                     board[row, col] = " ";
                                     board[row + temp * i, col + temp * j] = "Q";
-                                    if (IsKingSafe())
-                                    {
-                                        StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col + temp * j).Append(attackedPiece);
-                                        possibleMoves.Add(builder.ToString());
-
-                                    }
+                                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col + temp * j).Append(attackedPiece);
+                                    possibleMoves.Add(builder.ToString());
                                     board[row, col] = "Q";
                                     board[row + temp * i, col + temp * j] = attackedPiece;
 
@@ -334,7 +337,7 @@ namespace ChessEngine
             return possibleMoves;
         }
 
-        public static List<string> GetPossibleBishopMoves(int index)
+        private static List<string> GetPossibleBishopMoves(int index)
         {
             int temp = 1;
             int row = index / 8, col = index % 8;
@@ -350,12 +353,8 @@ namespace ChessEngine
                             string attackedPiece = board[row + temp * i, col + temp * j];
                             board[row, col] = " ";
                             board[row + temp * i, col + temp * j] = "B";
-                            if (IsKingSafe())
-                            {
-                                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col + temp * j).Append(attackedPiece);
-                                possibleMoves.Add(builder.ToString());
-
-                            }
+                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col + temp * j).Append(attackedPiece);
+                            possibleMoves.Add(builder.ToString());
                             board[row, col] = "B";
                             board[row + temp * i, col + temp * j] = attackedPiece;
 
@@ -367,12 +366,8 @@ namespace ChessEngine
                                 string attackedPiece = board[row + temp * i, col + temp * j];
                                 board[row, col] = " ";
                                 board[row + temp * i, col + temp * j] = "B";
-                                if (IsKingSafe())
-                                {
-                                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col + temp * j).Append(attackedPiece);
-                                    possibleMoves.Add(builder.ToString());
-
-                                }
+                                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col + temp * j).Append(attackedPiece);
+                                possibleMoves.Add(builder.ToString());
                                 board[row, col] = "B";
                                 board[row + temp * i, col + temp * j] = attackedPiece;
                             }
@@ -388,7 +383,7 @@ namespace ChessEngine
             return possibleMoves;
         }
 
-        public static List<string> GetPossibleRookMoves(int index)
+        private static List<string> GetPossibleRookMoves(int index)
         {
             int temp = 1;
             int row = index / 8, col = index % 8;
@@ -402,11 +397,8 @@ namespace ChessEngine
                         string attackedPiece = board[row + temp * i, col];
                         board[row, col] = " ";
                         board[row + temp * i, col] = "R";
-                        if (IsKingSafe())
-                        {
-                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col).Append(attackedPiece);
-                            possibleMoves.Add(builder.ToString());
-                        }
+                        StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col).Append(attackedPiece);
+                        possibleMoves.Add(builder.ToString());
                         board[row, col] = "R";
                         board[row + temp * i, col] = attackedPiece;
 
@@ -418,12 +410,8 @@ namespace ChessEngine
                             string attackedPiece = board[row + temp * i, col];
                             board[row, col] = " ";
                             board[row + temp * i, col] = "R";
-                            if (IsKingSafe())
-                            {
-                                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col).Append(attackedPiece);
-                                possibleMoves.Add(builder.ToString());
-
-                            }
+                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + temp * i).Append(col).Append(attackedPiece);
+                            possibleMoves.Add(builder.ToString());
                             board[row, col] = "R";
                             board[row + temp * i, col] = attackedPiece;
                         }
@@ -443,11 +431,8 @@ namespace ChessEngine
                         string attackedPiece = board[row, col + temp * i];
                         board[row, col] = " ";
                         board[row, col + temp * i] = "R";
-                        if (IsKingSafe())
-                        {
-                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row).Append(col + temp * i).Append(attackedPiece);
-                            possibleMoves.Add(builder.ToString());
-                        }
+                        StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row).Append(col + temp * i).Append(attackedPiece);
+                        possibleMoves.Add(builder.ToString());
                         board[row, col] = "R";
                         board[row, col + temp * i] = attackedPiece;
 
@@ -459,12 +444,8 @@ namespace ChessEngine
                             string attackedPiece = board[row, col + temp * i];
                             board[row, col] = " ";
                             board[row, col + temp * i] = "R";
-                            if (IsKingSafe())
-                            {
-                                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row).Append(col + temp * i).Append(attackedPiece);
-                                possibleMoves.Add(builder.ToString());
-
-                            }
+                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row).Append(col + temp * i).Append(attackedPiece);
+                            possibleMoves.Add(builder.ToString());
                             board[row, col] = "R";
                             board[row, col + temp * i] = attackedPiece;
                         }
@@ -478,7 +459,7 @@ namespace ChessEngine
             return possibleMoves;
         }
 
-        public static List<string> GetPossibleKnightMoves(int index)
+        private static List<string> GetPossibleKnightMoves(int index)
         {
             int row = index / 8, col = index % 8;
             List<string> possibleMoves = new List<string>();
@@ -487,12 +468,8 @@ namespace ChessEngine
                 string attackedPiece = board[row - 2, col + 1];
                 board[row, col] = " ";
                 board[row - 2, col + 1] = "N";
-                if (IsKingSafe())
-                {
-                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 2).Append(col + 1).Append(attackedPiece);
-                    possibleMoves.Add(builder.ToString());
-
-                }
+                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 2).Append(col + 1).Append(attackedPiece);
+                possibleMoves.Add(builder.ToString());
                 board[row, col] = "N";
                 board[row - 2, col + 1] = attackedPiece;
             }
@@ -501,12 +478,8 @@ namespace ChessEngine
                 string attackedPiece = board[row - 1, col + 2];
                 board[row, col] = " ";
                 board[row - 1, col + 2] = "N";
-                if (IsKingSafe())
-                {
-                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col + 2).Append(attackedPiece);
-                    possibleMoves.Add(builder.ToString());
-
-                }
+                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col + 2).Append(attackedPiece);
+                possibleMoves.Add(builder.ToString());
                 board[row, col] = "N";
                 board[row - 1, col + 2] = attackedPiece;
             }
@@ -515,12 +488,8 @@ namespace ChessEngine
                 string attackedPiece = board[row + 1, col + 2];
                 board[row, col] = " ";
                 board[row + 1, col + 2] = "N";
-                if (IsKingSafe())
-                {
-                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + 1).Append(col + 2).Append(attackedPiece);
-                    possibleMoves.Add(builder.ToString());
-
-                }
+                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + 1).Append(col + 2).Append(attackedPiece);
+                possibleMoves.Add(builder.ToString());
                 board[row, col] = "N";
                 board[row + 1, col + 2] = attackedPiece;
             }
@@ -529,12 +498,8 @@ namespace ChessEngine
                 string attackedPiece = board[row + 2, col + 1];
                 board[row, col] = " ";
                 board[row + 2, col + 1] = "N";
-                if (IsKingSafe())
-                {
-                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + 2).Append(col + 1).Append(attackedPiece);
-                    possibleMoves.Add(builder.ToString());
-
-                }
+                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + 2).Append(col + 1).Append(attackedPiece);
+                possibleMoves.Add(builder.ToString());
                 board[row, col] = "N";
                 board[row + 2, col + 1] = attackedPiece;
             }
@@ -543,12 +508,8 @@ namespace ChessEngine
                 string attackedPiece = board[row + 2, col - 1];
                 board[row, col] = " ";
                 board[row + 2, col - 1] = "N";
-                if (IsKingSafe())
-                {
-                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + 2).Append(col - 1).Append(attackedPiece);
-                    possibleMoves.Add(builder.ToString());
-
-                }
+                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + 2).Append(col - 1).Append(attackedPiece);
+                possibleMoves.Add(builder.ToString());
                 board[row, col] = "N";
                 board[row + 2, col - 1] = attackedPiece;
             }
@@ -557,12 +518,8 @@ namespace ChessEngine
                 string attackedPiece = board[row + 1, col - 2];
                 board[row, col] = " ";
                 board[row + 1, col - 2] = "N";
-                if (IsKingSafe())
-                {
-                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + 1).Append(col - 2).Append(attackedPiece);
-                    possibleMoves.Add(builder.ToString());
-
-                }
+                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row + 1).Append(col - 2).Append(attackedPiece);
+                possibleMoves.Add(builder.ToString());
                 board[row, col] = "N";
                 board[row + 1, col - 2] = attackedPiece;
             }
@@ -571,12 +528,8 @@ namespace ChessEngine
                 string attackedPiece = board[row - 1, col - 2];
                 board[row, col] = " ";
                 board[row - 1, col - 2] = "N";
-                if (IsKingSafe())
-                {
-                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col - 2).Append(attackedPiece);
-                    possibleMoves.Add(builder.ToString());
-
-                }
+                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col - 2).Append(attackedPiece);
+                possibleMoves.Add(builder.ToString());
                 board[row, col] = "N";
                 board[row - 1, col - 2] = attackedPiece;
             }
@@ -585,12 +538,8 @@ namespace ChessEngine
                 string attackedPiece = board[row - 2, col - 1];
                 board[row, col] = " ";
                 board[row - 2, col - 1] = "N";
-                if (IsKingSafe())
-                {
-                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 2).Append(col - 1).Append(attackedPiece);
-                    possibleMoves.Add(builder.ToString());
-
-                }
+                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 2).Append(col - 1).Append(attackedPiece);
+                possibleMoves.Add(builder.ToString());
                 board[row, col] = "N";
                 board[row - 2, col - 1] = attackedPiece;
             }
@@ -598,7 +547,7 @@ namespace ChessEngine
             return possibleMoves;
         }
 
-        public static List<string> GetPossiblePawnMoves(int index)
+        private static List<string> GetPossiblePawnMoves(int index)
         {
             int row = index / 8, col = index % 8;
             List<string> possibleMoves = new List<string>();
@@ -607,11 +556,8 @@ namespace ChessEngine
                 string attackedPiece = board[row - 2, col];
                 board[row, col] = " ";
                 board[row - 2, col] = "P";
-                if (IsKingSafe())
-                {
-                    StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 2).Append(col).Append(attackedPiece);
-                    possibleMoves.Add(builder.ToString());
-                }
+                StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 2).Append(col).Append(attackedPiece);
+                possibleMoves.Add(builder.ToString());
                 board[row - 2, col] = attackedPiece;
                 board[row, col] = "P";
 
@@ -623,19 +569,15 @@ namespace ChessEngine
                     string attackedPiece = board[row - 1, col - 1];
                     board[row, col] = " ";
                     board[row - 1, col - 1] = "P";
-                    if (IsKingSafe())
+                    if(row-1 == 0)
                     {
-                        if(row-1 == 0)
-                        {
-                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col - 1).Append(attackedPiece).Append('Q');
-                            possibleMoves.Add(builder.ToString());
-                        }
-                        else
-                        {
-                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col - 1).Append(attackedPiece);
-                            possibleMoves.Add(builder.ToString());
-                        }
-                        
+                        StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col - 1).Append(attackedPiece).Append('Q');
+                        possibleMoves.Add(builder.ToString());
+                    }
+                    else
+                    {
+                        StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col - 1).Append(attackedPiece);
+                        possibleMoves.Add(builder.ToString());
                     }
                     board[row - 1, col - 1] = attackedPiece;
                     board[row, col] = "P";
@@ -648,18 +590,15 @@ namespace ChessEngine
                     string attackedPiece = board[row - 1, col + 1];
                     board[row, col] = " ";
                     board[row - 1, col + 1] = "P";
-                    if (IsKingSafe())
+                    if (row - 1 == 0)
                     {
-                        if (row - 1 == 0)
-                        {
-                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col + 1).Append(attackedPiece).Append('Q');
-                            possibleMoves.Add(builder.ToString());
-                        }
-                        else
-                        {
-                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col + 1).Append(attackedPiece);
-                            possibleMoves.Add(builder.ToString());
-                        }
+                        StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col + 1).Append(attackedPiece).Append('Q');
+                        possibleMoves.Add(builder.ToString());
+                    }
+                    else
+                    {
+                        StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col + 1).Append(attackedPiece);
+                        possibleMoves.Add(builder.ToString());
                     }
                     board[row - 1, col + 1] = attackedPiece;
                     board[row, col] = "P";
@@ -672,19 +611,15 @@ namespace ChessEngine
                     string attackedPiece = board[row - 1, col];
                     board[row, col] = " ";
                     board[row - 1, col] = "P";
-                    if (IsKingSafe())
+                    if (row - 1 == 0)
                     {
-                        if (row - 1 == 0)
-                        {
-                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col).Append(attackedPiece).Append('Q');
-                            possibleMoves.Add(builder.ToString());
-                        }
-                        else
-                        {
-                            StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col).Append(attackedPiece);
-                            possibleMoves.Add(builder.ToString());
-                        }
-
+                        StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col).Append(attackedPiece).Append('Q');
+                        possibleMoves.Add(builder.ToString());
+                    }
+                    else
+                    {
+                        StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(row - 1).Append(col).Append(attackedPiece);
+                        possibleMoves.Add(builder.ToString());
                     }
                     board[row - 1, col] = attackedPiece;
                     board[row, col] = "P";
@@ -695,138 +630,7 @@ namespace ChessEngine
             return possibleMoves;
         }
 
-        public static bool IsKingSafe()
-        {
-            /*
-            //FlipBoard();
-            //List<string> enemyMoves = GetPossibleMoves();
-            //for (int i = 0; i < enemyMoves.Count; i++)
-            //{
-            //    if (enemyMoves[i].Contains("k"))
-            //    {
-            //        FlipBoard();
-            //        return false;
-            //    }
-            //}
-            //FlipBoard();*/
 
-
-
-            //int row = whiteKing / 8, col = whiteKing % 8;
-            ////bishop / queen
-            //int temp = 1;
-            //for (int i = -1; i <= 1; i += 2)
-            //{
-            //    for (int j = -1; j <= 1; j += 2)
-            //    {
-            //        while (IsInsideBounds(row + temp * i, col + temp * j))
-            //        {
-            //            if (" ".Equals(board[row + temp * i, col + temp * j])) { temp++; }
-            //            else
-            //            {
-            //                if ("b".Equals(board[row + temp * i, col + temp * j]) ||
-            //                    "q".Equals(board[row + temp * i, col + temp * j]))
-            //                {
-            //                    return false;
-            //                }
-            //                break;
-            //            }
-            //        }
-            //        temp = 1;
-            //    }
-            //}
-            ////rook/queen
-            //for (int i = -1; i <= 1; i += 2)
-            //{
-            //    while (IsInsideBounds(row, col + temp * i))
-            //    {
-            //        if (" ".Equals(board[row, col + temp * i])) { temp++; }
-            //        else
-            //        {
-            //            if ("b".Equals(board[row, col + temp * i]) ||
-            //                "q".Equals(board[row, col + temp * i]))
-            //            {
-            //                return false;
-            //            }
-            //            break;
-            //        }
-            //    }
-            //    while (IsInsideBounds(row + temp * i, col))
-            //    {
-            //        if (" ".Equals(board[row + temp * i, col])) { temp++; }
-            //        else
-            //        {
-            //            if ("b".Equals(board[row + temp * i, col]) ||
-            //                "q".Equals(board[row + temp * i, col]))
-            //            {
-            //                return false;
-            //            }
-            //            break;
-            //        }
-            //    }
-            //    temp = 1;
-            //}
-            ////knight
-            //for (int i = -1; i <= 1; i += 2)
-            //{
-            //    for (int j = -1; j <= 1; j += 2)
-            //    {
-            //        if (IsInsideBounds(row + i, col + j * 2))
-            //        {
-            //            if ("n".Equals(board[row + i, col + j * 2]))
-            //            {
-            //                return false;
-            //            }
-            //        }
-
-
-            //        if (IsInsideBounds(row + i * 2, col + j))
-            //        {
-            //            if ("n".Equals(board[row + i * 2, col + j]))
-            //            {
-            //                return false;
-            //            }
-            //        }
-            //    }
-            //}
-            ////pawn
-            //if (whiteKing >= 16)
-            //{
-            //    if (IsInsideBounds(row - 1, col - 1))
-            //    {
-            //        if ("p".Equals(board[row - 1, col - 1]))
-            //        {
-            //            return false;
-            //        }
-            //    }
-            //    if (IsInsideBounds(row - 1, col + 1))
-            //    {
-            //        if ("p".Equals(board[row - 1, col + 1]))
-            //        {
-            //            return false;
-            //        }
-            //    }
-            //}
-            ////king
-            //for (int i = -1; i <= 1; i++)
-            //{
-            //    for (int j = -1; j <= 1; j++)
-            //    {
-            //        if (i != 0 || j != 0)
-            //        {
-            //            if (IsInsideBounds(row + i, col + j))
-            //            {
-            //                if ("k".Equals(board[row + i, col + j]))
-            //                {
-            //                    return false;
-            //                }
-            //            }
-
-            //        }
-            //    }
-            //}
-            return true;
-        }
 
         public static bool IsInsideBounds(int i, int j)
         {

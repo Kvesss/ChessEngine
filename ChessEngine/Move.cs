@@ -21,7 +21,7 @@ namespace ChessEngine
             return move;
         }
 
-        public int  GetValue()
+        public int GetValue()
         {
             return value;
         }

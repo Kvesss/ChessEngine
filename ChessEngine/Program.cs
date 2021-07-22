@@ -42,15 +42,53 @@ namespace ChessEngine
             //}
             //Console.WriteLine(Minimax(DEPTH, "", -100000, 100000, 0));
 
+            string[] testCasesBlack =
+            {
+                "r*b***k*******p*P*n*pr*pq*p******b*P******N**N**PP*QBPPPR***K**R",
+                "r*b*qrk**ppn*pb*p**p*npp***Pp*****P*P**B**N*****PP*NBPPPR**Q*RK*",
+                "r*bq*rk*p****ppp*pnp*n****p*******PPpP***NP*P***P***B*PPR*BQ*RK*"
+            };
+
+            string[] testCasesWhite =
+            {
+                "**nq*nk******p*p****p*pQpb*pP*NP*p*P**P**P****N*P****PB*******K*",
+                "***********r**p*pp*Bp*p**kP******n**K*********R**P***P**********",
+                "************kb*p**p***pP*pP*P*P**P***K***B**********************",
+                "b*R**nk******ppp*p***n*******N***b**p****P**BP**q***BQPP******K*",
+                "***rr*k*pp***pbp**bp*np*q***p*B***B*P*****N****PPPPQ*PP****RR*K*",
+                "**R*r********k**pBP*n**p******p**************P*P**P***P********K",
+                "**r**rk**p*R*pp*p***p**p************B******QB*P*q*P***KP********"
+            };
+
+            for (int i = 0; i < 3; i++)
+            {
+
+                Engine.SetBoard(testCasesBlack[i]);
+                Engine.SwitchPlayer();
+                string move = Engine.Minimax(Engine.DEPTH, "", -100000, 100000, 0);
+                Console.WriteLine(Engine.GetMove(move));
+            }
+            for (int i = 0; i < 7; i++)
+            {
+
+                Engine.SetBoard(testCasesWhite[i]);
+                string move = Engine.Minimax(Engine.DEPTH, "", -100000, 100000, 0);
+                Console.WriteLine(Engine.GetMove(move));
+            }
 
             //string input = Console.ReadLine();
-            //SetBoard(input);
-            //SwitchPlayer();
-            string move = Engine.Minimax(Engine.DEPTH, "", -100000, 100000, 0);
-            Console.WriteLine(Engine.GetMove(move));
-            Console.WriteLine(move);
-            Engine.Move(move);
-            Engine.PrintBoard();
+            //Engine.SetBoard(input);
+            //Engine.SwitchPlayer();
+            //string move = Engine.Minimax(Engine.DEPTH, "", -100000, 100000, 0);
+            //Console.WriteLine(Engine.GetMove(move));
+            //Console.WriteLine(move);
+            //Console.WriteLine("Moves searched: " + Engine.numberOfMoves);
+            //Engine.Move(move);
+            //Engine.PrintBoard();
+
+
+
+
 
 
             //int counter = 0;
