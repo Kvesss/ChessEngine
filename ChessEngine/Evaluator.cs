@@ -47,56 +47,57 @@ namespace ChessEngine
                 {
                     switch (Engine.board[i, j])
                     {
-                        case "P":
+                        case 'P':
                             hashValue += 336546 * randomTable[i, j];
 
                             break;
-                        case "N":
+                        case 'N':
                             hashValue += 546564 * randomTable[i, j];
 
                             break;
-                        case "B":
+                        case 'B':
                             hashValue += 756489 * randomTable[i, j];
 
                             break;
-                        case "R":
+                        case 'R':
                             hashValue += 117988 * randomTable[i, j];
 
                             break;
-                        case "Q":
+                        case 'Q':
                             hashValue += 136785 * randomTable[i, j];
 
                             break;
-                        case "K":
+                        case 'K':
                             hashValue += 167557 * randomTable[i, j];
 
                             break;
-                        case "p":
+                        case 'p':
                             hashValue += 474767 * randomTable[i, j];
 
                             break;
-                        case "n":
+                        case 'n':
                             hashValue += 356356 * randomTable[i, j];
 
                             break;
-                        case "b":
+                        case 'b':
                             hashValue += 567567 * randomTable[i, j];
 
                             break;
-                        case "r":
+                        case 'r':
                             hashValue += 957445 * randomTable[i, j];
 
                             break;
-                        case "q":
+                        case 'q':
                             hashValue += 657457 * randomTable[i, j];
 
                             break;
-                        case "k":
+                        case 'k':
                             hashValue += 356743 * randomTable[i, j];
                             break;
                     }
                 }
             }
+            //Console.WriteLine(hashValue);
             if (hashSet.Contains(hashValue))
             {
                 return true;
@@ -185,24 +186,22 @@ namespace ChessEngine
 
         public static int Evaluate(int count, int depth)
         {
-            int evaluationValue = 0;
-            int piecesValue = EvaluatePieces();
-            evaluationValue += piecesValue;
+            int evaluationValue = EvaluatePieces();
             evaluationValue += EvaluateMobility(count);
-            evaluationValue += EvaluatePosition(piecesValue);
             Engine.SwitchPlayer();
-            piecesValue = EvaluatePieces();
-            evaluationValue -= piecesValue;
+            evaluationValue -= EvaluatePieces();
             evaluationValue -= EvaluateMobility(count);
-            evaluationValue -= EvaluatePosition(piecesValue);
             Engine.SwitchPlayer();
             return (evaluationValue + depth * 50)*-1;
 
         }
 
-        private static int EvaluatePosition(int piecesValue)
+        private static int EvaluatePieces()
         {
-            int value = 0;
+            int piecesValue = 0;
+            int positionValue = 0;
+            bool bishopPair = false;
+            int kingI = -1, kingJ = -1;
             int[] pawnsInLine = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
             for (int i = 0; i < 8; i++)
             {
@@ -210,91 +209,79 @@ namespace ChessEngine
                 {
                     switch (Engine.board[i, j])
                     {
-                        case "P":
-                            value += pawnPosition[i, j];
+                        case 'P':
+                            piecesValue += 100;
+                            positionValue += pawnPosition[i, j];
                             pawnsInLine[j]++;
                             if(pawnsInLine[j] > 1)
-                                value -= 50;
+                                positionValue -= 50;
                             //if (Engine.IsInsideBounds(i - 1, j - 1))
                             //{
                             //    if (Engine.board[i - 1, j - 1] == "P")
-                            //        value += 10;
+                            //        positionValue += 10;
                             //}
                             //if (Engine.IsInsideBounds(i - 1, j + 1))
                             //{
                             //    if (Engine.board[i - 1, j + 1] == "P")
-                            //        value += 10;
+                            //        positionValue += 10;
                             //}
                             break;
-                        case "N":
-                            value += knightPosition[i, j];
+                        case 'N':
+                            piecesValue += 300;
+                            positionValue += knightPosition[i, j];
                             break;
-                        case "B":
-                            value += bishopPosition[i, j];
+                        case 'B':
+                            positionValue += bishopPosition[i, j];
+                            piecesValue += bishopPair ? 400 : 300;
+                            bishopPair = !bishopPair;
                             break;
-                        case "R":
-                            value += rookPosition[i, j];
+                        case 'R':
+                            piecesValue += 500;
+                            positionValue += rookPosition[i, j];
                             break;
-                        case "Q":
-                            value += queenPosition[i, j];
+                        case 'Q':
+                            piecesValue += 900;
+                            positionValue += queenPosition[i, j];
                             break;
-                        case "K":
-                            if(piecesValue >= 12000)
-                            {
-                                value += kingPosition[i, j];
-                            }
-                            else
-                            {
-                                value += kingEndPosition[i, j];
-                            }
+                        case 'K':
+                            piecesValue += 9000;
+                            kingI = i;
+                            kingJ = j;
                             break;
                     }
                 }
             }
+            if (piecesValue >= 12000)
+            {
+                if(kingI == -1)
+                {
+                    piecesValue -= 10000;
+                }
+                else
+                {
+                    positionValue += kingPosition[kingI, kingJ];
+                }
+                
+            }
+            else
+            {
+                if (kingI == -1)
+                {
+                    piecesValue -= 10000;
+                }
+                else
+                {
+                    positionValue += kingEndPosition[kingI, kingJ];
+                }
+            }
 
-            return value;
+            return positionValue + piecesValue;
         }
         
 
         private static int EvaluateMobility(int count)
         {
             return 5*count;
-        }
-
-
-        public static int EvaluatePieces()
-        {
-            int value = 0;
-            bool bishopPair = false;
-            for(int i = 0; i<8; i++)
-            {
-                for(int j = 0; j <8; j++)
-                {
-                    switch (Engine.board[i, j])
-                    {
-                        case "P":
-                            value += 100;
-                            break;
-                        case "N":
-                            value += 300;
-                            break;
-                        case "B":
-                            value += bishopPair ? 400 : 300;
-                            bishopPair = !bishopPair;
-                            break;
-                        case "R":
-                            value += 500;
-                            break;
-                        case "Q":
-                            value += 900;
-                            break;
-                        case "K":
-                            value += 9000;
-                            break;
-                    }
-                }  
-            }
-            return value;
         }
     }
 }
