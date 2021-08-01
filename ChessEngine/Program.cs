@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 namespace ChessEngine
 {
@@ -67,6 +68,7 @@ namespace ChessEngine
                 Engine.SwitchPlayer();
                 string move = Engine.Minimax(Engine.DEPTH, "", -100000, 100000, 0);
                 Console.WriteLine(Engine.GetMove(move));
+                Evaluator.hashSet.Clear();
             }
             for (int i = 0; i < 7; i++)
             {
@@ -74,7 +76,11 @@ namespace ChessEngine
                 Engine.SetBoard(testCasesWhite[i]);
                 string move = Engine.Minimax(Engine.DEPTH, "", -100000, 100000, 0);
                 Console.WriteLine(Engine.GetMove(move));
+                Evaluator.hashSet.Clear();
+
             }
+
+
 
             //string input = Console.ReadLine();
             //Engine.SetBoard(input);
@@ -85,6 +91,8 @@ namespace ChessEngine
             //Console.WriteLine("Moves searched: " + Engine.numberOfMoves);
             //Engine.Move(move);
             //Engine.PrintBoard();
+            //Console.WriteLine(Evaluator.hashSet.Count);
+
 
 
 
@@ -95,19 +103,31 @@ namespace ChessEngine
             //while (true)
             //{
             //    Thread.Sleep(1000);
-            //    SwitchPlayer();
+            //    Engine.SwitchPlayer();
             //    if (counter % 2 == 0)
             //    {
-            //        Move(Minimax(DEPTH, "", -100000, 100000, 0));
-            //        PrintBoard();
+            //        string move = Engine.Minimax(Engine.DEPTH, "", -100000, 100000, 0);
+            //        if (move.Contains('k'))
+            //        {
+            //            Console.WriteLine("Game over!");
+            //            break;
+            //        }
+            //        Engine.Move(move);
+            //        Engine.PrintBoard();
             //    }
             //    else
             //    {
 
-            //        Move(Minimax(DEPTH, "", -100000, 100000, 1));
-            //        SwitchPlayer();
-            //        PrintBoard();
-            //        SwitchPlayer();
+            //        string move = Engine.Minimax(Engine.DEPTH, "", -100000, 100000, 1);
+            //        if (move.Contains('k'))
+            //        {
+            //            Console.WriteLine("Game over!");
+            //            break;
+            //        }
+            //        Engine.Move(move);
+            //        Engine.SwitchPlayer();
+            //        Engine.PrintBoard();
+            //        Engine.SwitchPlayer();
             //    }
             //    Console.WriteLine(Environment.NewLine);
 

@@ -9,6 +9,7 @@ namespace ChessEngine
         public const int DEPTH = 5;
         public static int numberOfMoves = 0;
 
+
         //r*b***k*******p*P*n*pr*pq*p******b*P******N**N**PP*QBPPPR***K**R
         //**nq*nk******p*p****p*pQpb*pP*NP*p*P**P**P****N*P****PB*******K*
         //***********r**p*pp*Bp*p**kP******n**K*********R**P***P**********
@@ -134,7 +135,7 @@ namespace ChessEngine
                 return move + (Evaluator.Evaluate(availableMoves.Count, depth) * (maximizingPlayer * 2 - 1)).ToString();
             }
             if (depth > 1)
-                OrderMoves(availableMoves);
+                OrderMoves(availableMoves, depth);
             maximizingPlayer = 1 - maximizingPlayer;
             for (int i = 0; i < availableMoves.Count; i++)
             {
@@ -173,15 +174,23 @@ namespace ChessEngine
 
         }
 
-        private static void OrderMoves(List<string> moves)
+        private static void OrderMoves(List<string> moves, int depth)
         {
-            List<int> values = new List<int>(moves.Count);
-            List<Move> sortedMoves = new List<Move>(moves.Count);
+            List<int> values = new List<int>();
+            List<Move> sortedMoves = new List<Move>();
             for (int i = 0; i<moves.Count; i++)
             {
                 Move(moves[i].Substring(0, 5));
+                if (depth > 2)
+                {
+                    if (Evaluator.CheckHashValue())
+                    {
+                        Undo(moves[i]);
+                        continue;
+                    }
+                }
                 values.Add(Evaluator.Evaluate(-1, 0));
-                sortedMoves.Add(new Move(moves[i], values[i]));
+                sortedMoves.Add(new Move(moves[i], values[values.Count-1]));
                 Undo(moves[i].Substring(0, 5));
             }
             for (int i = 0; i< sortedMoves.Count; i++)
@@ -206,28 +215,6 @@ namespace ChessEngine
 
         public static void SwitchPlayer()
         {
-            //for (int i = 0; i < 32; i++)
-            //{
-            //    string temp;
-            //    int row = i / 8, col = i % 8;
-            //    if (char.IsUpper(board[row, col][0]))
-            //    {
-            //        temp = board[row, col].ToLower();
-            //    }
-            //    else
-            //    {
-            //        temp = board[row, col].ToUpper();
-            //    }
-            //    if (char.IsUpper(board[7 - row, 7 - col][0]))
-            //    {
-            //        board[row, col] = board[7 - row, 7 - col].ToLower();
-            //    }
-            //    else
-            //    {
-            //        board[row, col] = board[7 - row, 7 - col].ToUpper();
-            //    }
-            //    board[7 - row, 7 - col] = temp;
-            //}
 
             for (int i = 0; i < 4; i++)
             {

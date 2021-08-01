@@ -7,6 +7,105 @@ namespace ChessEngine
     class Evaluator
     {
 
+        private static int[,] randomTable;
+        private static Random randomGenerator;
+        public static HashSet<int> hashSet;
+
+        static Evaluator()
+        {
+            hashSet = new HashSet<int>();
+            randomGenerator = new Random();
+            randomTable = new int[8, 8];
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    randomTable[i, j] = randomGenerator.Next(int.MinValue, int.MaxValue);
+                }
+            }
+        }
+
+        public static void PrintTable()
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    Console.Write(randomTable[i, j] + ", ");
+                }
+                Console.WriteLine();
+            }
+        }
+
+        public static bool CheckHashValue()
+        {
+            int hashValue = 0;
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    switch (Engine.board[i, j])
+                    {
+                        case "P":
+                            hashValue += 336546 * randomTable[i, j];
+
+                            break;
+                        case "N":
+                            hashValue += 546564 * randomTable[i, j];
+
+                            break;
+                        case "B":
+                            hashValue += 756489 * randomTable[i, j];
+
+                            break;
+                        case "R":
+                            hashValue += 117988 * randomTable[i, j];
+
+                            break;
+                        case "Q":
+                            hashValue += 136785 * randomTable[i, j];
+
+                            break;
+                        case "K":
+                            hashValue += 167557 * randomTable[i, j];
+
+                            break;
+                        case "p":
+                            hashValue += 474767 * randomTable[i, j];
+
+                            break;
+                        case "n":
+                            hashValue += 356356 * randomTable[i, j];
+
+                            break;
+                        case "b":
+                            hashValue += 567567 * randomTable[i, j];
+
+                            break;
+                        case "r":
+                            hashValue += 957445 * randomTable[i, j];
+
+                            break;
+                        case "q":
+                            hashValue += 657457 * randomTable[i, j];
+
+                            break;
+                        case "k":
+                            hashValue += 356743 * randomTable[i, j];
+                            break;
+                    }
+                }
+            }
+            if (hashSet.Contains(hashValue))
+            {
+                return true;
+            }
+            hashSet.Add(hashValue);
+            return false;
+        }
+
+
 
         private static readonly int[,] pawnPosition = new int[8, 8]
         {
@@ -126,16 +225,6 @@ namespace ChessEngine
                             //    if (Engine.board[i - 1, j + 1] == "P")
                             //        value += 10;
                             //}
-                            //if (Engine.IsInsideBounds(i + 1, j - 1))
-                            //{
-                            //    if (Engine.board[i + 1, j - 1] == "P")
-                            //        value += 10;
-                            //}
-                            //if (Engine.IsInsideBounds(i + 1, j + 1))
-                            //{
-                            //    if (Engine.board[i + 1, j + 1] == "P")
-                            //        value += 10;
-                            //}
                             break;
                         case "N":
                             value += knightPosition[i, j];
@@ -158,11 +247,11 @@ namespace ChessEngine
                             {
                                 value += kingEndPosition[i, j];
                             }
-                                
                             break;
                     }
                 }
             }
+
             return value;
         }
         
