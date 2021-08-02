@@ -20,7 +20,7 @@ namespace ChessEngine
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    randomTable[i, j] = randomGenerator.Next(int.MinValue, int.MaxValue);
+                    randomTable[i, j] = randomGenerator.Next(int.MinValue /1000, int.MaxValue/1000);
                 }
             }
         }
@@ -45,54 +45,54 @@ namespace ChessEngine
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    switch (Engine.board[i, j])
+                    switch (Engine.Board[i, j])
                     {
                         case 'P':
-                            hashValue += 336546 * randomTable[i, j];
+                            hashValue += 1 * randomTable[i, j];
 
                             break;
                         case 'N':
-                            hashValue += 546564 * randomTable[i, j];
+                            hashValue += 2 * randomTable[i, j];
 
                             break;
                         case 'B':
-                            hashValue += 756489 * randomTable[i, j];
+                            hashValue += 3 * randomTable[i, j];
 
                             break;
                         case 'R':
-                            hashValue += 117988 * randomTable[i, j];
+                            hashValue += 5 * randomTable[i, j];
 
                             break;
                         case 'Q':
-                            hashValue += 136785 * randomTable[i, j];
+                            hashValue += 7 * randomTable[i, j];
 
                             break;
                         case 'K':
-                            hashValue += 167557 * randomTable[i, j];
+                            hashValue += 11 * randomTable[i, j];
 
                             break;
                         case 'p':
-                            hashValue += 474767 * randomTable[i, j];
+                            hashValue += 13 * randomTable[i, j];
 
                             break;
                         case 'n':
-                            hashValue += 356356 * randomTable[i, j];
+                            hashValue += 17 * randomTable[i, j];
 
                             break;
                         case 'b':
-                            hashValue += 567567 * randomTable[i, j];
+                            hashValue += 19 * randomTable[i, j];
 
                             break;
                         case 'r':
-                            hashValue += 957445 * randomTable[i, j];
+                            hashValue += 23 * randomTable[i, j];
 
                             break;
                         case 'q':
-                            hashValue += 657457 * randomTable[i, j];
+                            hashValue += 29 * randomTable[i, j];
 
                             break;
                         case 'k':
-                            hashValue += 356743 * randomTable[i, j];
+                            hashValue += 31 * randomTable[i, j];
                             break;
                     }
                 }
@@ -207,7 +207,7 @@ namespace ChessEngine
             {
                 for (int j = 0; j < 8; j++)
                 {
-                    switch (Engine.board[i, j])
+                    switch (Engine.Board[i, j])
                     {
                         case 'P':
                             piecesValue += 100;

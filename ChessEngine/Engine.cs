@@ -48,8 +48,8 @@ namespace ChessEngine
         }
 
 
-        public static char[,] board = new char[8, 8] 
-        { 
+        private static char[,] board = new char[8, 8]
+        {
             {'r','n','b','q','k','b','n','r'},
             {'p','p','p','p','p','p','p','p'},
             {' ',' ',' ',' ',' ',' ',' ',' '},
@@ -59,39 +59,36 @@ namespace ChessEngine
             {'P','P','P','P','P','P','P','P'},
             {'R','N','B','Q','K','B','N','R'}};
 
+        public static char[,] Board { get => board; set => board = value; }
 
         public static List<string> GetPossibleMoves()
         {
-            List<string> possibleMoves = new List<string>();
-
+            List<string> availableMoves = new List<string>();
             for(int i=0; i<64; i++)
             {
-                
                 switch(board[i/8,i%8])
                 {
                     case 'P': 
-                        possibleMoves.AddRange(GetPossiblePawnMoves(i));
+                        availableMoves.AddRange(GetPossiblePawnMoves(i));
                         break;
                     case 'N':
-                        possibleMoves.AddRange(GetPossibleKnightMoves(i));
+                        availableMoves.AddRange(GetPossibleKnightMoves(i));
                         break;
                     case 'R':
-                        possibleMoves.AddRange(GetPossibleRookMoves(i));
+                        availableMoves.AddRange(GetPossibleRookMoves(i));
                         break;
                     case 'B':
-                        possibleMoves.AddRange(GetPossibleBishopMoves(i));
+                        availableMoves.AddRange(GetPossibleBishopMoves(i));
                         break;
                     case 'Q':
-                        possibleMoves.AddRange(GetPossibleQueenMoves(i));
+                        availableMoves.AddRange(GetPossibleQueenMoves(i));
                         break;
                     case 'K':
-                        possibleMoves.AddRange(GetPossibleKingMoves(i));
+                        availableMoves.AddRange(GetPossibleKingMoves(i));
                         break;
-                    
                 }
             }
-
-            return possibleMoves;
+            return availableMoves;
         }
 
 
@@ -171,7 +168,6 @@ namespace ChessEngine
                 }
             }
             return (maximizingPlayer == 0) ? move + beta : move + alpha;
-
         }
 
         private static void OrderMoves(List<string> moves, int depth)
@@ -257,8 +253,6 @@ namespace ChessEngine
                                 char attackedPiece = board[i, j];
                                 board[row, col] = ' ';
                                 board[i, j] = 'K';
-                                //string move = row + col + i + j + attackedPiece;
-                                //possibleMoves.Add(move);
                                 StringBuilder builder = new StringBuilder().Append(row).Append(col).Append(i).Append(j).Append(attackedPiece);
                                 possibleMoves.Add(builder.ToString());
 
